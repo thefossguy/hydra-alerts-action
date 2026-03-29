@@ -20,9 +20,9 @@ jobs:
         run: |
           set -x
 
-          PREVIOUS_RUN_ID="$(gh run list --workflow=hydra-alerts.yaml --limit 2 --json databaseId --jq '.[1].databaseId')"
+          PREVIOUS_RUN_ID="$(gh run list --repo thefossguy/hydra-alerts-action --workflow=hydra-alerts.yaml --limit 2 --json databaseId --jq '.[1].databaseId')"
           if [[ -n "${PREVIOUS_RUN_ID}" ]] then
-              gh run download "${PREVIOUS_RUN_ID}" --name previous-job-info --dir $PWD
+              gh run download --repo thefossguy/hydra-alerts-action "${PREVIOUS_RUN_ID}" --name previous-job-info --dir $PWD
           else
               echo 'ERROR: Could not determine $PREVIOUS_RUN_ID for some reason'
               touch previous-job-info
