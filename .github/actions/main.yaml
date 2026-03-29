@@ -1,0 +1,31 @@
+name: main
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *' # Hourly
+
+jobs:
+  main:
+    name: main
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+      contents: "read"
+    steps:
+      - uses: actions/checkout@main
+      - uses: NixOS/nix-installer-action@main
+        with:
+          installer-version: latest
+          extra-conf: |
+            experimental-features = nix-command flakes
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          diff-store: true
+          use-flakehub: false
+          use-gha-cache: true
+
+      - name: main
+        run: |
+          nix shell --refresh \
+              --file https://github.com/thefossguy/hydra-alerts/archive/master.tar.gz \
+              --command main.py thefossguy
