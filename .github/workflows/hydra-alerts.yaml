@@ -48,6 +48,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: hydra-alerts-pre-setup
     if: needs.hydra-alerts-pre-setup.outputs.do_hydra_checks == 'true'
+    outputs:
+      hydra_check_success: ${{ steps.ci.outputs.hydra_check_success }}
     permissions:
       id-token: "write"
       contents: "read"
@@ -59,11 +61,21 @@ jobs:
             experimental-features = nix-command flakes
 
       - name: Running the CI
+        id: ci
         run: |
           set -x
+          set +e
           nix shell --refresh \
               --file https://github.com/thefossguy/hydra-alerts/archive/master.tar.gz \
-              --command main.py thefossguy
+              --command main.py thefossguy 2>&1 | tee hydra-alerts-combined-output
+
+          # handle **ALL** non-successful builds including ones that haven't started
+          HYDRA_ALERTS_MESSAGES="$(grep ' => ' ./hydra-alerts-combined-output | grep -v ' => SUCCESSFUL')"
+          if [[ -z "${HYDRA_ALERTS_MESSAGES}" ]]; then
+              echo "hydra_check_success=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "hydra_check_success=false" >> "$GITHUB_OUTPUT"
+          fi
 
   hydra-alerts-aftermath:
     name: Hydra alerts aftermath
@@ -83,7 +95,7 @@ jobs:
           echo "${HYDRA_ALERTS_STATUS}"
           touch previous-job-info
           if [[ "${HYDRA_ALERTS_STATUS}" == 'success' ]] || [[ "${HYDRA_ALERTS_STATUS}" == 'skipped' ]]; then
-              echo ":${{ needs.hydra-alerts-pre-setup.outputs.nixos_unstable_small_rev }}:true" | tee previous-job-info
+              echo ":${{ needs.hydra-alerts-pre-setup.outputs.nixos_unstable_small_rev }}:${{ needs.hydra-alerts.outputs.hydra_check_success }}" | tee previous-job-info
           elif [[ "${HYDRA_ALERTS_STATUS}" == 'failure' ]] || [[ "${HYDRA_ALERTS_STATUS}" == 'cancelled' ]]; then
               echo ":${{ needs.hydra-alerts-pre-setup.outputs.nixos_unstable_small_rev }}:false" | tee previous-job-info
           else
