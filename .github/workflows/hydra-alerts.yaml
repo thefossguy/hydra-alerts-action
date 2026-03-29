@@ -30,7 +30,7 @@ jobs:
           fi
           cat previous-job-info
 
-          NIXOS_UNSTABLE_SMALL_REV="$(git ls-remote https://github.com/nixos/nixpkgs.git refs/heads/nixos-unstable-small)"
+          NIXOS_UNSTABLE_SMALL_REV="$(git ls-remote https://github.com/nixos/nixpkgs.git refs/heads/nixos-unstable-small | awk '{print $1}')"
           if [[ -n "${NIXOS_UNSTABLE_SMALL_REV}" ]]; then
               echo "nixos_unstable_small_rev=${NIXOS_UNSTABLE_SMALL_REV}" >> "$GITHUB_OUTPUT"
               if grep -q ":${NIXOS_UNSTABLE_SMALL_REV}:true" previous-job-info; then
