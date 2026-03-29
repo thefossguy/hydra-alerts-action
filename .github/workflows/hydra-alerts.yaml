@@ -68,7 +68,7 @@ jobs:
   hydra-alerts-aftermath:
     name: Hydra alerts aftermath
     runs-on: ubuntu-latest
-    needs: hydra-alerts
+    needs: [hydra-alerts, hydra-alerts-pre-setup,]
     if: always()
     permissions:
       id-token: "write"
