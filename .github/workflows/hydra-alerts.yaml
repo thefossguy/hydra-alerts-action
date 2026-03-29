@@ -57,11 +57,6 @@ jobs:
         with:
           extra-conf: |
             experimental-features = nix-command flakes
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-        with:
-          diff-store: true
-          use-flakehub: false
-          use-gha-cache: true
 
       - name: Running the CI
         run: |
